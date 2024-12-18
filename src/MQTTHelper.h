@@ -1,12 +1,17 @@
-#ifndef MQTTHELPER_H
-#define MQTTHELPER_H
+// Copyright (c) 2023-2024 Sondre Sjølyst
+
+#ifndef SRC_MQTTHELPER_H_
+#define SRC_MQTTHELPER_H_
 
 #include <ArduinoJson.h>
-#include <PubSubClient.h>
 #include <ESP8266WiFi.h>
-#include "PRINTHelper.h"
-#include "liz.h"
+#include <PubSubClient.h>
 #include <regex>
+#include <string>
+#include <vector>
+
+#include "PRINTHelper.h"
+#include "../lib/liz/src/liz.h"
 
 extern String CHIP_ID_STRING;
 extern const char *LIZ_TYPE;
@@ -23,9 +28,10 @@ extern PRINTHelper printHelper;
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-void sendMQTTTemperatureDiscoveryMsg(String MQTT_STATETOPIC, String MQTT_HOSTNAME)
-{
-  String discoveryTopic = "homeassistant/sensor/" + String(MQTT_HOSTNAME) + "_temperature/config";
+void sendMQTTTemperatureDiscoveryMsg(String MQTT_STATETOPIC,
+                                     String MQTT_HOSTNAME) {
+  String discoveryTopic =
+      "homeassistant/sensor/" + String(MQTT_HOSTNAME) + "_temperature/config";
 
   DynamicJsonDocument doc(1024);
   char buffer[512];
@@ -44,9 +50,10 @@ void sendMQTTTemperatureDiscoveryMsg(String MQTT_STATETOPIC, String MQTT_HOSTNAM
   client.publish(discoveryTopic.c_str(), buffer, n);
 }
 
-void sendMQTTHumidityDiscoveryMsg(String MQTT_STATETOPIC, String MQTT_HOSTNAME)
-{
-  String discoveryTopic = "homeassistant/sensor/" + String(MQTT_HOSTNAME) + "_humidity/config";
+void sendMQTTHumidityDiscoveryMsg(String MQTT_STATETOPIC,
+                                  String MQTT_HOSTNAME) {
+  String discoveryTopic =
+      "homeassistant/sensor/" + String(MQTT_HOSTNAME) + "_humidity/config";
 
   DynamicJsonDocument doc(1024);
   char buffer[512];
@@ -65,9 +72,9 @@ void sendMQTTHumidityDiscoveryMsg(String MQTT_STATETOPIC, String MQTT_HOSTNAME)
   client.publish(discoveryTopic.c_str(), buffer, n);
 }
 
-void sendMQTTVoltageDiscoveryMsg(String MQTT_STATETOPIC, String MQTT_HOSTNAME)
-{
-  String discoveryTopic = "homeassistant/sensor/" + String(MQTT_HOSTNAME) + "voltage/config";
+void sendMQTTVoltageDiscoveryMsg(String MQTT_STATETOPIC, String MQTT_HOSTNAME) {
+  String discoveryTopic =
+      "homeassistant/sensor/" + String(MQTT_HOSTNAME) + "voltage/config";
 
   DynamicJsonDocument doc(1024);
   char buffer[512];
@@ -86,8 +93,7 @@ void sendMQTTVoltageDiscoveryMsg(String MQTT_STATETOPIC, String MQTT_HOSTNAME)
   client.publish(discoveryTopic.c_str(), buffer, n);
 }
 
-void sendMQTTWizDiscoveryMsg(std::string deviceIP, std::string deviceName)
-{
+void sendMQTTWizDiscoveryMsg(std::string deviceIP, std::string deviceName) {
   std::string discoveryTopic = "homeassistant/switch/" + deviceName + "/config";
 
   DynamicJsonDocument doc(1024);
@@ -123,8 +129,7 @@ void sendMQTTWizDiscoveryMsg(std::string deviceIP, std::string deviceName)
   // client.subscribe(stateTopic.c_str());
 }
 
-void publishWizState(String deviceName, bool lightState)
-{
+void publishWizState(String deviceName, bool lightState) {
   printHelper.println("publishWizState...");
 
   String payload = lightState ? "ON" : "OFF";
@@ -136,8 +141,7 @@ void publishWizState(String deviceName, bool lightState)
   printHelper.println(stateTopic);
 }
 
-void mqttCallback(char *topic, byte *payload, unsigned int length)
-{
+void mqttCallback(char *topic, byte *payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.println("] ");
@@ -147,9 +151,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   printHelper.println("] ");
 
   String payloadStr;
-  for (unsigned int i = 0; i < length; i++)
-  {
-    payloadStr += (char)payload[i];
+  for (unsigned int i = 0; i < length; i++) {
+    payloadStr += static_cast<char>(payload[i]);
   }
   printHelper.println(payloadStr);
 
@@ -158,16 +161,15 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   size_t lastUnderscore = topicStr.find_last_of("_");
   size_t start = topicStr.find_last_of("_", lastUnderscore - 1) + 1;
   size_t lastSlash = topicStr.find_last_of("/");
-  std::string deviceMac = topicStr.substr(lastUnderscore + 1, lastSlash - lastUnderscore - 1);
+  std::string deviceMac =
+      topicStr.substr(lastUnderscore + 1, lastSlash - lastUnderscore - 1);
   std::string moduleName = topicStr.substr(start, lastUnderscore - start);
   printHelper.println(topicStr.c_str());
 
   // Find the device IP using the MAC address
   std::string deviceIP;
-  for (const auto &device : liz::getDiscoveredDevices())
-  {
-    if (std::get<1>(device) == deviceMac)
-    {
+  for (const auto &device : liz::getDiscoveredDevices()) {
+    if (std::get<1>(device) == deviceMac) {
       deviceIP = std::get<0>(device);
       break;
     }
@@ -178,39 +180,31 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   printHelper.println(payloadStr);
 
   // If the payload is "on", turn on the light/switch
-  if (payloadStr == "ON")
-  {
+  if (payloadStr == "ON") {
     liz::setPilot(deviceIP.c_str(), port, true);
-  }
-  else if (payloadStr == "OFF")
-  {
+  } else if (payloadStr == "OFF") {
     liz::setPilot(deviceIP.c_str(), port, false);
   }
 
   // delay(2000);
 
   auto response = liz::getPilot(deviceIP.c_str(), port);
-  if (response)
-  {
+  if (response) {
     printHelper.println(response->c_str());
     printHelper.println("");
 
     DynamicJsonDocument doc(1024);
     DeserializationError error = deserializeJson(doc, response->c_str());
-    if (error)
-    {
+    if (error) {
       printHelper.println("Failed to parse JSON response");
-    }
-    else
-    {
+    } else {
       // std::string deviceMac = doc["result"]["mac"];
       // std::string moduleName = doc["result"]["moduleName"];
       bool state = doc["result"]["state"];
 
       // Filter out "SOCKET" or "SHRGBC"
       std::smatch match;
-      if (std::regex_search(moduleName, match, std::regex("(SOCKET|SHRGBC)")))
-      {
+      if (std::regex_search(moduleName, match, std::regex("(SOCKET|SHRGBC)"))) {
         moduleName = match.str();
       }
 
@@ -225,13 +219,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   }
 }
 
-bool mqttStatus()
-{
-  return client.connected();
-}
+bool mqttStatus() { return client.connected(); }
 
-void connectToMQTT()
-{
+void connectToMQTT() {
   Serial.print("Attempting to connect to MQTT broker: ");
   Serial.println(MQTT_BROKER);
   printHelper.print("Attempting to connect to MQTT broker: ");
@@ -241,29 +231,22 @@ void connectToMQTT()
   client.setBufferSize(512);
   client.setCallback(mqttCallback);
 
-  while (!client.connected())
-  {
+  while (!client.connected()) {
     liz::clearDiscoveredDevices();
     printHelper.println("Clearing Discovered Devices");
-    if (client.connect(MQTT_HOSTNAME, MQTT_USER, MQTT_PASS))
-    {
+    if (client.connect(MQTT_HOSTNAME, MQTT_USER, MQTT_PASS)) {
       Serial.println("");
       Serial.println("MQTT connected");
       printHelper.println("");
       printHelper.println("MQTT connected");
 
-      if (strcmp(LIZ_TYPE, "sensor") == 0)
-      {
+      if (strcmp(LIZ_TYPE, "sensor") == 0) {
         sendMQTTTemperatureDiscoveryMsg(MQTT_STATETOPIC, MQTT_HOSTNAME);
         sendMQTTHumidityDiscoveryMsg(MQTT_STATETOPIC, MQTT_HOSTNAME);
-      }
-      else if (strcmp(LIZ_TYPE, "voltmeter") == 0)
-      {
+      } else if (strcmp(LIZ_TYPE, "voltmeter") == 0) {
         sendMQTTVoltageDiscoveryMsg(MQTT_STATETOPIC, MQTT_HOSTNAME);
       }
-    }
-    else
-    {
+    } else {
       Serial.print("MQTT connection failed! Error code = ");
       Serial.println(client.state());
       printHelper.print("MQTT connection failed! Error code = ");
@@ -272,4 +255,4 @@ void connectToMQTT()
   }
 }
 
-#endif
+#endif  // SRC_MQTTHELPER_H_

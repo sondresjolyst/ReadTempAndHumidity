@@ -1,9 +1,12 @@
-#ifndef WEBSERVER_H
-#define WEBSERVER_H
+// Copyright (c) 2023-2024 Sondre Sjølyst
+
+#ifndef SRC_WEBSERVER_H_
+#define SRC_WEBSERVER_H_
 
 #include <ESP8266WebServer.h>
-#include <PubSubClient.h>
 #include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+
 
 extern ESP8266WebServer server;
 extern WiFiClient serverClient;
@@ -11,24 +14,19 @@ extern PubSubClient client;
 
 const char *html = "<html>...</html>";
 
-String getWifiOptions()
-{
+String getWifiOptions() {
   int n = WiFi.scanNetworks();
   String options = "";
 
   String ssids[n];
 
-  for (int i = 0; i < n; i++)
-  {
+  for (int i = 0; i < n; i++) {
     ssids[i] = WiFi.SSID(i);
   }
 
-  for (int i = 0; i < n - 1; i++)
-  {
-    for (int j = i + 1; j < n; j++)
-    {
-      if (ssids[j] < ssids[i])
-      {
+  for (int i = 0; i < n - 1; i++) {
+    for (int j = i + 1; j < n; j++) {
+      if (ssids[j] < ssids[i]) {
         String temp = ssids[i];
         ssids[i] = ssids[j];
         ssids[j] = temp;
@@ -36,16 +34,14 @@ String getWifiOptions()
     }
   }
 
-  for (int i = 0; i < n; i++)
-  {
+  for (int i = 0; i < n; i++) {
     options += "<option value='" + ssids[i] + "'>" + ssids[i] + "</option>";
   }
 
   return options;
 }
 
-void handleRoot()
-{
+void handleRoot() {
   String options = getWifiOptions();
   String html = "<html>\
 <head>\
@@ -110,8 +106,7 @@ void handleRoot()
   server.send(200, "text/html", html);
 }
 
-void webpage_status()
-{
+void webpage_status() {
   String html = "<html>\
   <body>\
     <h1>ESP8266 Web Server</h1>\
@@ -123,10 +118,8 @@ void webpage_status()
   server.send(200, "text/html", html);
 }
 
-void handleSubmit()
-{
-  if (server.hasArg("ssid") && server.hasArg("password"))
-  {
+void handleSubmit() {
+  if (server.hasArg("ssid") && server.hasArg("password")) {
     String ssid = server.arg("ssid");
     String password = server.arg("password");
 
@@ -136,11 +129,9 @@ void handleSubmit()
     server.send(200, "text/plain", "Data received. Restarting...");
     delay(1000);
     ESP.restart();
-  }
-  else
-  {
+  } else {
     server.send(400, "text/plain", "Missing SSID or password");
   }
 }
 
-#endif
+#endif  // SRC_WEBSERVER_H_

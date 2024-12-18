@@ -1,28 +1,22 @@
-#ifndef OTAHELPER_H
-#define OTAHELPER_H
+// Copyright (c) 2023-2024 Sondre Sjølyst
 
+#ifndef SRC_OTAHELPER_H_
+#define SRC_OTAHELPER_H_
+
+#include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
-#include <ArduinoOTA.h>
 
-void onStart()
-{
-  Serial.println("Start");
-}
+void onStart() { Serial.println("Start"); }
 
-void onEnd()
-{
-  Serial.println("\nEnd");
-}
+void onEnd() { Serial.println("\nEnd"); }
 
-void onProgress(unsigned int progress, unsigned int total)
-{
+void onProgress(unsigned int progress, unsigned int total) {
   Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
 }
 
-void onError(ota_error_t error)
-{
+void onError(ota_error_t error) {
   Serial.printf("Error [%u]: ", error);
   if (error == OTA_AUTH_ERROR)
     Serial.println("Auth Failed");
@@ -36,15 +30,12 @@ void onError(ota_error_t error)
     Serial.println("End Failed");
 }
 
-class OTAHelper
-{
-public:
+class OTAHelper {
+ public:
   OTAHelper() {}
 
-  void setup()
-  {
-    if (WiFi.status() != WL_CONNECTED)
-    {
+  void setup() {
+    if (WiFi.status() != WL_CONNECTED) {
       Serial.println("Error: No WiFi connection when setting up OTAHelper");
       return;
     }
@@ -58,10 +49,7 @@ public:
     Serial.println("OTA is ready");
   }
 
-  void loop()
-  {
-    ArduinoOTA.handle();
-  }
+  void loop() { ArduinoOTA.handle(); }
 };
 
-#endif
+#endif  // SRC_OTAHELPER_H_

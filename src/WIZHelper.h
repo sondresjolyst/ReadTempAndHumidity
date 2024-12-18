@@ -1,11 +1,15 @@
-#ifndef WIZHELPER_H
-#define WIZHELPER_H
+// Copyright (c) 2023-2024 Sondre Sjølyst
 
-#include <WiFiUdp.h>
-#include <vector>
+#ifndef SRC_WIZHELPER_H_
+#define SRC_WIZHELPER_H_
+
 #include <ArduinoJson.h>
-#include "PRINTHelper.h"
+#include <WiFiUdp.h>
+
+#include <vector>
+
 #include "MQTTHelper.h"
+#include "PRINTHelper.h"
 
 // extern WiFiClient serverClient;
 extern PRINTHelper printHelper;
@@ -29,8 +33,8 @@ WiFiUDP Udp;
 //   if (millis() - lastToggleTime >= WIZDISCOVER_READ_DELAY) {
 //     lastToggleTime = millis();
 
-//     Udp.beginPacketMulticast(IPAddress(255, 255, 255, 255), localUdpPort, WiFi.localIP());
-//     Udp.write("{\"method\":\"getDevInfo\"}");
+//     Udp.beginPacketMulticast(IPAddress(255, 255, 255, 255), localUdpPort,
+//     WiFi.localIP()); Udp.write("{\"method\":\"getDevInfo\"}");
 //     Udp.endPacket();
 
 //     int packetSize = Udp.parsePacket();
@@ -57,8 +61,8 @@ WiFiUDP Udp;
 
 //       if (!deviceDiscovered) {
 //         discoveredDevices.push_back(std::make_pair(deviceIP, deviceMac));
-//         printHelper.printf("Discovered new device at IP: %s\n", deviceIP.c_str());
-//         String deviceName = "wiz_light_" + deviceMac;
+//         printHelper.printf("Discovered new device at IP: %s\n",
+//         deviceIP.c_str()); String deviceName = "wiz_light_" + deviceMac;
 //         sendMQTTWizDiscoveryMsg(deviceIP, deviceName);
 
 //         String stateTopic = "home/storage/" + deviceName + "/state";
@@ -78,8 +82,10 @@ WiFiUDP Udp;
 //       if (deviceCount < MAX_DEVICES) {
 //         deviceArray[deviceCount++] = device;
 //       } else {
-//         // Handle the situation where there are more devices than the array can hold
-//         // For example, you could ignore the extra devices or replace an existing device
+//         // Handle the situation where there are more devices than the array
+//         can hold
+//         // For example, you could ignore the extra devices or replace an
+//         existing device
 //       }
 //     }
 //   }
@@ -110,7 +116,8 @@ WiFiUDP Udp;
 //         incomingPacket[len] = 0;
 //       }
 
-//       printHelper.println("Received response from: " + Udp.remoteIP().toString());
+//       printHelper.println("Received response from: " +
+//       Udp.remoteIP().toString());
 
 //       DynamicJsonDocument doc(1024);
 //       deserializeJson(doc, incomingPacket);
@@ -128,10 +135,10 @@ WiFiUDP Udp;
 //   }
 // }
 
-void wizSetup()
-{
+void wizSetup() {
   Udp.begin(localUdpPort);
-  printHelper.printf("Now listening at IP %s, UDP port %d\n", WiFi.localIP().toString().c_str(), localUdpPort);
+  printHelper.printf("Now listening at IP %s, UDP port %d\n",
+                     WiFi.localIP().toString().c_str(), localUdpPort);
 }
 
-#endif
+#endif  // SRC_WIZHELPER_H_
